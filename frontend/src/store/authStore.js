@@ -2,6 +2,16 @@ import { create } from 'zustand';
 import { authAPI, userAPI } from '../api/api';
 import { connectSocket, disconnectSocket } from '../api/socket';
 
+function extractErrorMessage(error, fallback) {
+  const data = error.response?.data;
+  return (
+    data?.message ||
+    data?.error ||
+    (Array.isArray(data?.errors) ? data.errors[0]?.msg : undefined) ||
+    fallback
+  );
+}
+
 const useAuthStore = create((set, get) => ({
   user: null,
   token: null,
@@ -20,10 +30,7 @@ const useAuthStore = create((set, get) => ({
       return { success: true };
     } catch (error) {
       set({ isLoading: false });
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Login failed',
-      };
+      return { success: false, error: extractErrorMessage(error, 'Login failed') };
     }
   },
 
@@ -39,10 +46,7 @@ const useAuthStore = create((set, get) => ({
       return { success: true };
     } catch (error) {
       set({ isLoading: false });
-      return {
-        success: false,
-        error: error.response?.data?.message || 'Registration failed',
-      };
+      return { success: false, error: extractErrorMessage(error, 'Registration failed') };
     }
   },
 
